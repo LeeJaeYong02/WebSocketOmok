@@ -14,4 +14,12 @@
 
 ![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/42ba2100-5608-4ea9-ad6d-edbba56fbd7c)
 
+![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/f385bfba-6ad1-4a70-b5b5-0c5657e5f4cd)
+
 ![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/e1821e90-cda4-4fdd-a427-ac954544e883)
+
+![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/24b47910-faa1-4077-927f-31f9dd01437e)
+
+![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/a2bb8d5c-4787-4ebc-ae5b-b62e09bc4532)
+
+![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/e7f0965b-512c-4b10-a7e2-47d99f3161e0)
