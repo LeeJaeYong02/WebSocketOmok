@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오목 게임</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            overflow: hidden; /* 스크롤바 없애기 */
+        }
+
+        header {
+            background: linear-gradient(to right, #3498db, #6c5ce7);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 10px 10px 0 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #bdc3c7;
+            border-radius: 0 0 10px 10px;
+            padding: 20px;
+        }
+
+        .game-board {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(15, 40px);
+            grid-template-rows: repeat(15, 40px);
+            gap: 2px;
+        }
+
+        .game-cell {
+            width: 40px;
+            height: 40px;
+            background-color: #bdc3c7;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: relative;
+        }
+
+        .game-cell:hover {
+            background-color: #95a5a6;
+        }
+
+        /* 수평선 */
+        .game-cell::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: black;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* 수직선 */
+        .game-cell::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background-color: black;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .status-bar {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .players-list {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .players-list h2 {
+            margin: 0 0 10px;
+        }
+
+        .players-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .players-list li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>오목 게임 - 방 이름</h1>
+    <button onclick="leaveRoom()">나가기</button>
+</header>
+
+<!-- 오목 게임 보드 -->
+<div class="game-container">
+    <div class="status-bar">
+        <!-- 방 정보 및 플레이어 차례를 나타내는 요소 -->
+        <p>현재 차례: 플레이어 1</p>
+    </div>
+    <div class="game-board" id="gameBoard">
+        <!-- 자바스크립트로 동적으로 생성될 오목 판 -->
+    </div>
+    <div class="players-list">
+        <h2>참여한 플레이어 목록</h2>
+        <ul>
+            <li>플레이어 1</li>
+            <li>플레이어 2</li>
+            <!-- 다른 플레이어 목록 추가 -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    function leaveRoom() {
+        console.log('방을 나갑니다.');
+        // 실제로 방을 나가는 동작 추가
+    }
+
+    // 자바스크립트로 오목 판을 동적으로 생성
+    const boardSize = 15;
+    const gameBoard = document.getElementById('gameBoard');
+
+    for (let i = 0; i < boardSize; i++) {
+        for (let j = 0; j < boardSize; j++) {
+            const cell = document.createElement('div');
+            cell.classList.add('game-cell');
+            gameBoard.appendChild(cell);
+        }
+    }
+</script>
+</body>
+</html>

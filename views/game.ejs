@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오목 게임</title>
+  <link rel="stylesheet" href="/stylesheets/game.css">
+
+  <script src="/javascripts/layerPopup.js"></script>
+  <script src="/javascripts/gameRule.js"></script>
+  <script src="/javascripts/module-client.js"></script>
+  <script>
+    // 플레이어 정보
+    let myPlayerNumber;
+    let myStoneColor = "";
+    let myPlayerColor;
+
+    // 플레이어 컬러 정의
+    const pn1Color = "blue";
+    const pn2Color = "green";
+
+    let stoneColorChoicePopup
+  </script>
+</head>
+<body>
+<header>
+  <h1 id="roomTitle">방 이름</h1>
+  <button id="leaveGameBtn">나가기</button>
+</header>
+
+<div id="game-container" class="game-container">
+  <h3><span id="currentTurnPlayer">플레이어 참여 대기중</span></h3>
+  <div class="game-board" id="gameBoard">
+    <!-- 자바스크립트로 동적으로 생성될 오목 판 -->
+  </div>
+
+  <div id="players">
+    <div id="p1">
+
+    </div>
+    <div id="p2">
+
+    </div>
+  </div>
+
+  <div class="players-list">
+    <ul>
+      <li>
+        <div id="p1p">플레이어1: <span id="p1pStoneColor"></span></div>
+        <div id="p1Attend">참여 안함</div>
+      </li>
+      <li>
+        <div id="p2p">플레이어2: <span id="p2pStoneColor"></span></div>
+        <div id="p2Attend">참여 안함</div>
+      </li>
+      <!-- 다른 플레이어 목록 추가 -->
+    </ul>
+  </div>
+</div>
+
+
+<div id="roomId" hidden><%= roomId %></div>
+<script>
+  const ws = new WebSocket('ws://localhost:3000');
+  const roomId = document.getElementById("roomId").innerText;
+
+  ws.addEventListener('open', (event) => {
+    const message = JSON.stringify({ action: 'enterRoom', roomId: roomId });
+    ws.send(message);
+  });
+
+  ws.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+
+    if(data.action === 'enterRoomError') {
+      alert(data.message)
+      location.href="/omokGame";
+    } else if (data.action === 'leaveGame') {
+      location.href="/omokGame";
+    } else if(data.action === 'enteredRoom') {
+      document.getElementById("roomTitle").innerText = data.room.name;
+
+      updateRoomPlayerList();
+
+      myPlayerNumber = data.playerNumber;
+      myPlayerColor = myPlayerNumber == 1 ? pn1Color : pn2Color;
+    } else if(data.action == 'updateRoomPlayerList') {
+      updateRoomPlayerList();
+
+      if(data.room.players.length == 2) {
+        gameReady();
+      }
+    } else if(data.action == 'opponentStoneColorChoice') {
+      if(data.opponentStoneColor == "white") {
+        stoneColorChoicePopup.rightBtnDisable(true);
+        stoneColorChoicePopup.rightBtnBorder(data.opponentPlayerColor);
+
+        if(myStoneColor == "white") {
+            myStoneColor = "";
+        }
+      } else {
+        stoneColorChoicePopup.leftBtnDisable(true);
+        stoneColorChoicePopup.leftBtnBorder(data.opponentPlayerColor);
+
+        if(myStoneColor == "black") {
+            myStoneColor = "";
+        }
+      }
+
+      if(myPlayerNumber == "1") {
+          document.getElementById("p2pStoneColor").innerText = data.opponentStoneColor;
+      } else if(myPlayerNumber == "2") {
+          document.getElementById("p1pStoneColor").innerText = data.opponentStoneColor;
+      }
+
+    } else if(data.action == 'moveOmok') {
+        omokGame.moveOmok(data.row, data.col, data.stoneColor);
+        if (omokGame.getGameEndFlag()) {
+            alert(data.stoneColor + " 승리");
+        } else {
+            if(omokGame.getBoardCellData(data.row, data.col) == myStoneColor) {
+                const message = JSON.stringify({ action: 'turnOver', roomId: roomId, currentPlayerNumber: myPlayerNumber, currentPlayerStoneColor: data.stoneColor });
+                ws.send(message);
+            }
+        }
+    } else if(data.action == 'turnOver') {
+        var currentPlayerNumber = data.currentPlayerNumber;
+        var currentPlayerStoneColor = data.currentPlayerStoneColor;
+        document.getElementById("currentTurnPlayer").innerText = "플레이어" + currentPlayerNumber + " ( " + currentPlayerStoneColor + " )";
+
+        if(currentPlayerNumber == myPlayerNumber) {
+            omokGame.boardDisabled(false);
+        } else {
+            omokGame.boardDisabled(true);
+        }
+    }
+
+    function updateRoomPlayerList() {
+      var players = data.room.players;
+      var docP1 = document.getElementById("p1Attend");
+      var docP2 = document.getElementById("p2Attend");
+
+      if(players[0] != undefined) {
+        docP1.innerText = "참여 했음";
+        docP1.style.color = "blue";
+        docP1.style.fontWeight = "bold";
+      } else {
+        docP1.innerText = "참여 안함";
+        docP1.style.fontWeight = "normal";
+        docP1.style.color = "black"
+      }
+      if(players[1] != undefined) {
+        docP2.innerText = "참여 했음";
+        docP2.style.fontWeight = "bold";
+        docP2.style.color = "blue";
+      } else {
+        docP2.innerText = "참여 안함";
+        docP2.style.fontWeight = "normal";
+        docP2.style.color = "black"
+      }
+
+      if(stoneColorChoicePopup != undefined && stoneColorChoicePopup.openYnFlag == true) {
+        closePopup(stoneColorChoicePopup);
+      }
+    }
+  });
+</script>
+<script>
+  let omokGame;
+  document.addEventListener('DOMContentLoaded', () => {
+
+    moduleClient.refreshPerceive(function() {
+      location.href = "/omokGame/lobby"
+      console.log("새로고침을 하여 메인페이지로");
+    });
+
+    document.getElementById("p1p").style.color = pn1Color;
+    document.getElementById("p2p").style.color = pn2Color;
+
+
+    // 게임 보드 생성
+    omokGame = new startOmokGame(ws, document.getElementById('gameBoard'));
+    omokGame.createGameBoard();
+
+    omokGame.setCellClickEvent(function(cell, row, col) {
+      var messageParamObj = {
+        action: 'moveOmok',
+        roomId: roomId,
+        row: row,
+        col: col,
+        currentPlayerNumber: myPlayerNumber,
+        currentPlayerStoneColor: myStoneColor
+      }
+
+      const message = JSON.stringify(messageParamObj);
+      ws.send(message);
+    });
+
+    // 게임 나가기 버튼을 클릭했을 때 호출되는 함수
+    document.getElementById('leaveGameBtn').addEventListener('click', function() {
+      const message = JSON.stringify({ action: 'leaveGame', roomId: roomId });
+      ws.send(message);
+    });
+
+  });
+
+  function gameReady() {
+    var leftBtnObj = {
+      "text" : "흑돌",
+      "callback" : function() {
+        stoneColorChoicePopup.leftBtnBorder(myPlayerColor);
+        myStoneColor = "black";
+      }
+    }
+    var rightBtnObj = {
+      "text" : "백돌",
+      "callback" : function() {
+        stoneColorChoicePopup.rightBtnBorder(myPlayerColor);
+        myStoneColor = "white";
+
+      }
+    }
+    var confirmBtnObj = {
+      "text" : "확인",
+      "callback" : function() {
+        if(myStoneColor == "" || myStoneColor == null) {
+            alert("바둑돌을 선택하세요.")
+            return;
+        } else {
+            const message = JSON.stringify({ action: 'stoneColorChoice', roomId: roomId, playerNumber : myPlayerNumber, playerColor : myPlayerColor, stoneColor : myStoneColor});
+            ws.send(message);
+            if(stoneColorChoicePopup != undefined && stoneColorChoicePopup.openYnFlag == true) {
+              closePopup(stoneColorChoicePopup);
+
+              var innerTextSetting = "";
+              if(myStoneColor == "black") {
+                innerTextSetting = "플레이어" + myPlayerNumber + " ( " + myStoneColor + " )"
+                omokGame.boardDisabled(false);
+              } else {
+                innerTextSetting = "플레이어" + (myPlayerNumber == "1" ? "2" : "1") + " ( black )"
+                omokGame.boardDisabled(true);
+              }
+              document.getElementById("currentTurnPlayer").innerText = innerTextSetting;;
+            }
+
+            document.getElementById("p"+myPlayerNumber+"pStoneColor").innerText = myStoneColor;
+        }
+      }
+    }
+    stoneColorChoicePopup = new twoButtonLayerPopup(leftBtnObj, rightBtnObj, confirmBtnObj);
+    stoneColorChoicePopup.openPopup();
+  }
+</script>
+</body>
+</html>

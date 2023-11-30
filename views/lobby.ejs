@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대기실</title>
+  <link rel="stylesheet" href="/stylesheets/lobby.css">
+</head>
+<body>
+
+<div class="lobby-container">
+  <div class="player-list">
+    <h2>플레이어 리스트</h2>
+    <ul id="playerList">
+      <!-- 추가적인 플레이어 리스트 항목들 -->
+    </ul>
+  </div>
+
+  <div class="room-list">
+    <h2>방 리스트</h2>
+    <ul id="roomList">
+      <!-- 추가적인 방 리스트 항목들 -->
+    </ul>
+
+    <button class="create-room" id="createRoomBtn">방 만들기</button>
+  </div>
+</div>
+<script>
+  const ws = new WebSocket('ws://localhost:3000');
+
+  ws.addEventListener('open', (event) => {
+    var message = JSON.stringify({ action: 'selectRoom' });
+    ws.send(message);
+
+    message = JSON.stringify({ action: 'playerList' });
+    ws.send(message);
+  });
+
+  ws.addEventListener('message', (event) => {
+    const data = JSON.parse(event.data);
+
+    // "updateRoomList" 메시지 처리
+    if (data.action === 'updateRoomList') {
+      updateRoomList(data.rooms);
+    } else if(data.action === 'createRoomError') {
+      alert(data.message);
+      return;
+    } else if(data.action === 'createRoomSuccess') {
+      enterRoom(data.room.id);
+    } else if(data.action === 'playerList') {
+      updatePlayersList(data.playerList);
+    }
+  });
+
+  document.getElementById("createRoomBtn").onclick = function() {
+    const roomName = prompt('방 이름을 입력하세요:');
+    if (roomName) {
+      const message = JSON.stringify({ action: 'createRoom', roomName });
+      ws.send(message);
+    }
+  }
+
+  function updateRoomList(rooms) {
+    const roomListElement = document.getElementById('roomList');
+    roomListElement.innerHTML = '';
+
+    rooms.forEach(room => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `방 ${room.id}: ${room.name}`;
+      listItem.style.cursor = "pointer";
+      listItem.setAttribute("roomId", `${room.id}`);
+      listItem.onclick = function() {
+          enterRoom(this.getAttribute("roomId"));
+      }
+      roomListElement.appendChild(listItem);
+    });
+  }
+
+  function updatePlayersList(players) {
+    const playerListElement = document.getElementById('playerList');
+    playerListElement.innerHTML = '';
+
+    players.forEach(player => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `${player}`;
+      listItem.style.cursor = "pointer";
+      playerListElement.appendChild(listItem);
+    });
+  }
+
+  function enterRoom(roomId) {
+    location.href = "/omokGame/game/" + roomId;
+  }
+</script>
+</body>
+</html>
