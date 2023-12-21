@@ -23,3 +23,6 @@
 ![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/a2bb8d5c-4787-4ebc-ae5b-b62e09bc4532)
 
 ![image](https://github.com/LeeJaeYong02/WebSocketOmok/assets/66985977/e7f0965b-512c-4b10-a7e2-47d99f3161e0)
+
+
+https://github.com/iJaeDragon/WebSocketOmok/assets/66985977/af03ab4a-d865-4da5-8cdb-296f0fd9bdc6
